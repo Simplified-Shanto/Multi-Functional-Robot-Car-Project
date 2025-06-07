@@ -21,7 +21,7 @@ Helps in measuring distance in a particular direction
 2. The controller 
 It comprises of these major electro-mechanical components:
 
-a.Arduino Nano:
+a. ESP8266
 Onboard microcontroller
 
 b.KY023 joystick module:
