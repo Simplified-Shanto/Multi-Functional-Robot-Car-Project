@@ -20,32 +20,34 @@ void setup() {
   pinMode(in4, OUTPUT); 
 
 }
- 
 unsigned long preMillis = millis(); 
-
 int speedPWM = 150; 
 int timeThreshold = 100; 
-
 String command = "a"; 
 char Direction = 'a'; 
 String speedString = "x"; 
 
-
 void loop() {
+
    if (Serial.available()) {
     command = Serial.readStringUntil('.');  
     Direction = command[0];
     speedString = command.substring(2, command.length()); 
     speedPWM = speedString.toInt(); 
+    
+    
     preMillis = millis(); 
+
+       
         switch(Direction)
         {
         case 'f': 
         {
-        goForward(speedPWM); 
+       goForward(speedPWM); 
         timeThreshold = 100; 
         }
         break; 
+        
         case 'b': 
         {
         goBackward(speedPWM); 
