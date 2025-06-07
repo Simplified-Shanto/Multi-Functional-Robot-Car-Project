@@ -29,7 +29,7 @@ boolean extraPinState[8] = {0, 0, 0, 0, 0, 0, 0, 0}; //Initially all extra pins 
 #define in4  18
 
 //Pin declaration for the gripper motor. 
-#define gripperIn1 19
+#define gripperIn1 8
 #define gripperIn2 20
 
 #define servoPin 12
@@ -44,15 +44,29 @@ Servo armServo3; //The fourth servo motor from the base of the robotic arm
 Servo armServo4; //The fifth servo motor from the base of the robotic arm
 Servo armServo5; //The sixth servo motor from the base of the robotic arm
 
- byte servoPositions[6] = {90, 90, 90,90, 100, 10}; //Initial positions of the servo motors used in the arm
-                                                 //armServ1, armServo2Left, armServo2Right are continuous rotation, so we set 90 degree (stop). 
+ byte servoPositions[6] = {90, 90, 90,90, 90, 90}; //Initial positions of the servo motors used in the arm
+                                                 //armServo1, armServo3 and armServo4 are continuous rotation, so we set 90 degree (stop). 
 
 #define angleChangeDelay  5
-#define CRSruntime   60    //The time period for which we will run (backward/forward) the Continous Rotation Servo (CSR) for 1 press. 
-#define CRSspeed 60  //In range 0 to 90
+#define CRSruntime   30    //The time period for which we will run (backward/forward) the Continous Rotation Servo (CSR) for 1 press. 
+#define CRSspeed 15  //In range 0 to 90
 
 
 void setup() {
+  pinMode(gripperIn1, OUTPUT); 
+  //pinMode(gripperIn2, OUTPUT); 
+  digitalWrite(gripperIn1, LOW); 
+  digitalWrite(gripperIn2, LOW); 
+  pinMode(latchPin, OUTPUT); 
+  pinMode(clockPin, OUTPUT); 
+  pinMode(dataPin, OUTPUT); 
+
+  //Pulling all extra pins to LOW initially
+  digitalWrite(latchPin, LOW); 
+  shiftOut(dataPin, clockPin, MSBFIRST, 0); 
+  digitalWrite(latchPin, HIGH); 
+
+  
    pinMode(commonEnablePin, OUTPUT);
    analogWrite(commonEnablePin, 0); 
 
@@ -84,14 +98,7 @@ void setup() {
     delay(moveGap); 
     
    
-  pinMode(latchPin, OUTPUT); 
-  pinMode(clockPin, OUTPUT); 
-  pinMode(dataPin, OUTPUT); 
-
-  //Pulling all extra pins to LOW initially
-  digitalWrite(latchPin, LOW); 
-  shiftOut(dataPin, clockPin, MSBFIRST, 0); 
-  digitalWrite(latchPin, HIGH); 
+  
   
   delay(100); 
 
@@ -215,29 +222,33 @@ void loop() {
 
         case 'v': //The left and right CSR from the base of the arm. 
         {
-          if(actionValue==1) { armServo2Left.write(90-CRSspeed);  armServo2Right.write(90+CRSspeed); } 
-          else { armServo2Left.write(90+CRSspeed); armServo2Right.write(90-CRSspeed); } 
-          delay(CRSruntime); 
-          armServo2Left.write(90); 
-          armServo2Right.write(90); 
+          servoPositions[1]+=actionValue; //Incrementing/Decrementing. 
+          servoPositions[1] = max(servoPositions[1], 2); //Taking care of lower bound of angle
+          servoPositions[1] = min(servoPositions[1], 178); //Taking care of upper bound of angle
+          servoPositions[2]-=actionValue; //Doing the opposite for the opposite side servo motor. 
+          servoPositions[2] = max(servoPositions[2], 2); //Taking care of lower bound of angle
+          servoPositions[2] = min(servoPositions[2], 178); //Taking care of upper bound of angle
+          
+          armServo2Left.write(servoPositions[1]); 
+          armServo2Right.write(servoPositions[2]); 
         }
         break; 
 
-        case 'w': //Third servo counting from the base of the arm. 
+        case 'w': //Third CR servo counting from the base of the arm. 
         {
-          servoPositions[3]+=actionValue; //Incrementing/Decrementing. 
-          servoPositions[3] = max(servoPositions[3], 2); //Taking care of lower bound of angle
-          servoPositions[3] = min(servoPositions[3], 178); //Taking care of upper bound of angle
-          armServo3.write(servoPositions[3]); 
+         if(actionValue==1){     armServo3.write(CRSspeed+90);       }  //moving in the forward direction. 
+         else { armServo3.write(90-CRSspeed); }  //moving in the backward direction
+         delay(CRSruntime);   //for a short time. 
+         armServo3.write(90); //then stopping the motor from rotating. 
         }
         break; 
 
         case 'x': //Fourth servo counting from the base of the arm. 
         {
-           servoPositions[4]+=2*actionValue; //Incrementing/Decrementing. 
-          servoPositions[4] = max(servoPositions[4], 2); //Taking care of lower bound of angle
-          servoPositions[4] = min(servoPositions[4], 178); //Taking care of upper bound of angle
-          armServo4.write(servoPositions[4]); 
+           if(actionValue==1){     armServo4.write(CRSspeed+90);       }  //moving in the forward direction. 
+         else { armServo4.write(90-CRSspeed); }  //moving in the backward direction
+         delay(CRSruntime);   //for a short time. 
+         armServo4.write(90); //then stopping the motor from rotating. 
         }
         break; 
 
@@ -246,22 +257,22 @@ void loop() {
            servoPositions[5]+=2*actionValue; //Incrementing/Decrementing. 
           servoPositions[5] = max(servoPositions[5], 2); //Taking care of lower bound of angle
           servoPositions[5] = min(servoPositions[5], 178); //Taking care of upper bound of angle
-          armServo4.write(servoPositions[5]); 
+          armServo5.write(servoPositions[5]); 
         }
         break;
 
          case 'z': //The gripper mechanism is implemented using gear motor. 
         {
-         if(actionValue == 1)
+            if(actionValue == 1)
           {
-            DigitalWrite(gripperIn1, HIGH); 
+            digitalWrite(gripperIn1, HIGH); 
             DigitalWrite(gripperIn2, LOW); 
             delay(10); 
-            DigitalWrite(gripperIn1, LOW); 
+            digitalWrite(gripperIn1, LOW); 
           }
           else if(actionValue == -1)
           {
-            DigitalWrite(gripperIn1, LOW); 
+            digitalWrite(gripperIn1, LOW); 
             DigitalWrite(gripperIn2, HIGH); 
             delay(10); 
             DigitalWrite(gripperIn2, LOW); 
@@ -351,30 +362,6 @@ void DigitalWrite(int extraPinNumber, int state)
   digitalWrite(latchPin, HIGH); 
 }
 
-/*
-  //Custom function for slowly incrementing the angleValue of the arm servos
-  void moveServoTo(Servo servoName, int servoIndex, int desiredPosition) //The name of the Servo(armServo1), index of the servo motor(1), the position we want to go(30 degree)
-  {
-    short change = (desiredPosition - servoPositions[servoIndex - 1]); //Finding the total change
-    change/=abs(change); //Normalizing the change - deriving whether it will be -1 or +1
-
-    while(desiredPosition!=servoPositions[servoIndex-1])
-    {
-      if(Serial.available()) //If any new position is sent while a servo is changing it's position, it'll pause that and orient for the new position. 
-      {
-        break; 
-      }
-      servoPositions[servoIndex-1]+=change; 
-      servoName.write(servoPositions[servoIndex-1]); 
-      delay(angleChangeDelay); 
-
-    }
-    
-  }
-
-*/
-
-
 
 
 int calculateDistance(){ 
@@ -413,8 +400,8 @@ void rightBackward(int actionValue)
 void leftForward(int actionValue)
 {
  analogWrite(commonEnablePin, actionValue); 
-  DigitalWrite(15, HIGH); 
-  DigitalWrite(16, LOW); 
+  DigitalWrite(in1, HIGH); 
+  DigitalWrite(in2, LOW); 
   
 }
 
