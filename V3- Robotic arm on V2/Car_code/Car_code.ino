@@ -28,6 +28,10 @@ boolean extraPinState[8] = {0, 0, 0, 0, 0, 0, 0, 0}; //Initially all extra pins 
 #define in3  17
 #define in4  18
 
+//Pin declaration for the gripper motor. 
+#define gripperIn1 19
+#define gripperIn2 20
+
 #define servoPin 12
 #define trigPin 14
 #define echoPin A0
@@ -40,7 +44,7 @@ Servo armServo4; //The fourth servo motor from the base of the robotic arm
 Servo armServo5; //The fifth servo motor from the base of the robotic arm
 Servo armServo6; //The sixth servo motor from the base of the robotic arm
 
- byte servoPositions[6] = {114, 7, 5, 100, 10, 90}; //Initial positions of the servo motors used in the arm
+ byte servoPositions[5] = {114, 7, 5, 100, 10}; //Initial positions of the servo motors used in the arm
 
 #define angleChangeDelay 20
 
@@ -52,12 +56,12 @@ void setup() {
   //Handling the servo motors
    sensorServo.attach(servoPin); 
   sensorServo.write(90); 
-  armServo1.attach(5); 
-  armServo2.attach(6); 
-  armServo3.attach(7); 
-  armServo4.attach(8); 
-  armServo5.attach(9); 
-  armServo6.attach(10); 
+  armServo1.attach(9); 
+  armServo2.attach(10); 
+  armServo3.attach(11); 
+  armServo4.attach(5); 
+  armServo5.attach(6); 
+  
 
   
                                         //Setting the servo's to their initial positions. 
@@ -72,9 +76,7 @@ void setup() {
     delay(moveGap); 
     armServo5.write(servoPositions[4]); 
     delay(moveGap); 
-    armServo6.write(servoPositions[5]);
-    delay(moveGap);  
-
+    
    
   pinMode(latchPin, OUTPUT); 
   pinMode(clockPin, OUTPUT); 
@@ -127,7 +129,9 @@ unsigned short oaSpeed = 90; //PWM value while driving in obstacle avoidance (OA
  * Left - 'l'
  * Right - 'r'
  * 
- * 6 servos on the robotic arm starting from the first one at the base:  'u', 'v', 'w', 'x', 'y', 'z'
+ * 5 servos on the robotic arm starting from the first one at the base:  'u', 'v', 'w', 'x', 'y'
+ * The gripper mechanism is controlled with "z:1." for forward direction movement of the motor. 
+ *                                          "z:-1." for the backward direction movement of the motor. 
  * 
  * Mode setup - 'm' 
  * OA variables settings - '0' to last index of oaSettings array. 
@@ -228,8 +232,21 @@ void loop() {
         
         case 'z': //Sixth servo counting from the base of the arm. 
         {
-          //armServo6.write(actionValue); 
-          moveServoTo(armServo5, 5, actionValue); 
+          if(actionValue == 1)
+          {
+            DigitalWrite(gripperIn1, HIGH); 
+            DigitalWrite(gripperIn2, LOW); 
+            delay(10); 
+            DigitalWrite(gripperIn1, LOW); 
+          }
+          else if(actionValue == -1)
+          {
+            DigitalWrite(gripperIn1, LOW); 
+            DigitalWrite(gripperIn2, HIGH); 
+            delay(10); 
+            DigitalWrite(gripperIn2, LOW); 
+          }
+
         }
         break;  
 
@@ -295,28 +312,6 @@ void loop() {
         goForward(oaSettingsValue[0]); 
       }
     }
-
-
-    goForward(100); 
-    Stop(); 
-    delay(1000); 
-
-    goLeft(100); 
-    Stop(); 
-    delay(1000);
-
-    goForward(100); 
-    Stop(); 
-    delay(1000); 
-
-    goLeft(100); 
-    Stop(); 
-    delay(1000); 
-    
-    goBackward(100); 
-    Stop(); 
-    delay(1000); 
-
     
     
 }
