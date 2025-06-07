@@ -1,0 +1,8 @@
+New bluetooth modul
+___________________
+Adress: 98D3:31:F9744E
+
+
+old BLUETOOTH MODULE INFO
+_________________________
+ADDRESS:98D3:31:F5B469
