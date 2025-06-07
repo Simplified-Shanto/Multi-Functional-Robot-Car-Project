@@ -32,4 +32,6 @@ f. Select the item in the list that resembles the name of your bluetooth module.
 g. Once the app is connected to the car, the app will automatically take you to the main interface. 
 h. Now, the controls in the interface can be used to control the car. 
 
+This app features stable control system for forward, backward, left, right and slider control for 6 servo motors connected on the robocar. 
+
 
