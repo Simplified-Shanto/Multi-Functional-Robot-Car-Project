@@ -17,10 +17,6 @@ unsigned short oaSpeed = 90; //PWM value while driving in obstacle avoidance (OA
 //but this setting was pretty meaningful for the Arduino Nano controller. 
 
 #define noSettings 5               //Number of Settings
-//      //   String oaSettings[noSettings] =  {"OA BF PWM", "OA BF time", "OA LR PWM" , "OA LR time", "Safe Distance"};   //The obstacle avoidance mode settings and values. 
-//  unsigned short  oaSettingsValue[noSettings] = {90,         250,           200,          200,          8 };     //Time in millisecond, Safe distance is in inch. 
-//                                       /*Index:  0             1             2             3             4*/
-
 
         //   String oaSettings[noSettings] =  {"OA BF PWM", "OA BF time", "OA LR PWM" , "OA LR time", "Safe Distance"};   //The obstacle avoidance mode settings and values. 
  unsigned short  oaSettingsValue[noSettings] = {200,         80,           230,          400,          12 };     //Time in millisecond, Safe distance is in inch. 

@@ -1,35 +1,28 @@
+#include<SoftwareSerial.h> 
+#include<Servo.h>
+#include "Shift_Register.h"
+#include "WheelMotors.h"
+#include "RoboticArm.h"
+#include "ObstacleAvoidance.h"
+#include "Line_follower.h"
+
 //See CodeGuidance.h for detailed comments on required topics. 
-//#include <iostream>
-#include <SPI.h>  
-#include <Wire.h> 
-#include <Adafruit_GFX.h> 
-#include <Adafruit_SSD1306.h> 
-#include <SoftwareSerial.h>
-
-#define SCREEN_WIDTH  128 //OLED display width, in pixels. 
-#define SCREEN_HEIGHT 64  //OLED display height, in pixels.
-//Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-Adafruit_SSD1306 OLED(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1); 
-
-const byte rxPin = A3;
+const byte rxPin = A1;
 const byte txPin = A2;
 
 // Set up a new SoftwareSerial object
 SoftwareSerial MC2 (rxPin, txPin); //MC2 means the other microcontroller onboard. 
 
 
-#include<Servo.h>
-#include "Shift_Register.h"
-#include "WheelMotors.h"
-#include "RoboticArm.h"
-#include "ObstacleAvoidance.h"
-#include "Sensors.h"
-
 #define SonarSensorAttached 1 
 //Whether ultrasonic sensor is currently attached
                               //with the vehicle, otherwise we'll disable all 
                               //functionalaties related to it. 
 
+
+
+#define SerialBaudRate 9600  //Baud rate of the built in Serial channel. 
+#define MC2BaudRate    600   //Baud rate of the softwareSerial for Microcontroller 2 of the robot car. 
 
 void setup() {
   pinMode(latchPin, OUTPUT); 
@@ -41,37 +34,10 @@ void setup() {
   shiftOut(dataPin, clockPin, MSBFIRST, 0); 
   digitalWrite(latchPin, HIGH); 
 
-  if(!OLED.begin(SSD1306_SWITCHCAPVCC, 0x3C)) //Address of our 128x64 display is 0x3C
-  {
-    //Serial.println(F("SSD1306 allocation failed"));  //By wrapping the output string inside F() we store the string in the program flash memory instread of SRAM. 
-   // for(;;); //Keep looping forever. 
-  }
-   delay(2000); //waiting for the display to set up itself 
-
-  OLED.clearDisplay(); 
-
-  OLED.setTextSize(1); 
-  OLED.setTextColor(WHITE); 
-  OLED.setCursor(0,0); 
-  //DISPLAY static text
-  OLED.println("Hi! :)"); 
-  OLED.display(); 
-   
-   delay(4000); 
-
-  //Switching pin of sensor shield. 
-  pinMode(sensorPowerPin, OUTPUT); 
- digitalWrite(sensorPowerPin, LOW); 
   //Declaring 4 wheel's motor's common enable pin and setting it to 0 (In range 0 to 255)
    pinMode(commonEnablePin, OUTPUT);
    analogWrite(commonEnablePin, 0); 
 
-  // //Initializing the LCD display connected via I2C backpack 
-  //    lcd.init(); 
-  // lcd.backlight(); 
-  // lcd.clear(); 
-  // lcd.setCursor(0,0); 
-  // lcd.print("Setup started. "); 
 
  //PWM pins in arduino Uno:  3, 5, 6, 9, 10, 11
   //Handling the servo motors
@@ -89,25 +55,18 @@ void setup() {
                            //initial angle. 
   delay(100); 
 
-  Serial.begin(9600); 
-  MC2.begin(9600); 
+  Serial.begin(SerialBaudRate); 
+  MC2.begin(MC2BaudRate); 
 
   /*Setting up sensors*/
 
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
-
-// lcd.setCursor(0,0); 
-// lcd.clear(); 
-// lcd.print("Setup done."); 
-// lcd.setCursor(1, 0); 
-// lcd.print("Entering loop()"); 
-  OLED.clearDisplay(); 
-  OLED.setCursor(0,0); 
-  OLED.println("Setup finished!"); 
-  OLED.display(); 
-  delay(500); 
-
+  //Line follower IR channels
+  pinMode(leftIRpin, INPUT); 
+  pinMode(rightIRpin, INPUT); 
+  pinMode(middleIRpin, INPUT); 
+ 
 }
 
 
@@ -131,9 +90,6 @@ void loop()
            if (Serial.available())
            {
                 command = Serial.readStringUntil('.');  
-                OLED.clearDisplay(); 
-                OLED.println(command); 
-                OLED.display(); 
                 Action = command[0]; //The type of action the remote wants us to take. 
                 speedString = command.substring(2, command.length()); 
                 actionValue = speedString.toInt();   
@@ -142,20 +98,10 @@ void loop()
                         switch(Action) //Which action we are going to take. 
                         {
                               case 'f': 
-                              if(carMode==1){ 
-                                if(SonarSensorAttached == 1) 
-                                {
-                                  if(calculateDistance()>3)
-                                  {
+                              if(carMode==1)
+                              { 
                                      goForward(actionValue); 
                                      timeThreshold = 100; 
-                                  }
-                                }
-                                else  //if the sonar sensor is not attached we'll not go for checking distance. 
-                                {      
-                             goForward(actionValue); 
-                              timeThreshold = 100; 
-                                }
                               }
                               break; 
                               
@@ -181,26 +127,20 @@ void loop()
                       
                               case 'm': //Mode setup 
                               {
-                                Stop(); 
-                                sensorServo.write(90); //Making the sensor front facing in the beginning of all modes
-                                delay(1000); 
-                                carMode = actionValue; 
-                                if(carMode==3)
+                                if(actionValue==3)  //the controller wants to set carmode to 3
                                 {   
                                     //Send command to MC2 to power up sensor shield and start sending readings; 
                                     MC2.print("1"); 
-
-                                    OLED.clearDisplay(); 
-                                    OLED.println("MC2 -> 1"); 
-                                    OLED.display(); 
-                                    
                                 }
-                                else 
+                                else if(carMode==3) //If the actionValue is not 3 and the car was previously set
+                                                    //to sensor reading mode.  
                                 {
-                                    // MC2.print("0"); 
-                                    // lcd.home(); 
-                                    // lcd.print("MC2 -> 0"); 
+                                    Serial.begin(SerialBaudRate); //Clearing the Serial buffer. 
+                                    MC2.print("0"); 
+                                    MC2.flush(); 
                                 }
+                                //Changing the car mode. 
+                                carMode = actionValue; 
                               }
                               break; 
                       
@@ -262,7 +202,7 @@ void loop()
                         }
            }
 
-             if(carMode==2) //Whether car is in collission avoidance mode. 
+            if(carMode==2) //Whether car is in collission avoidance mode. 
             {
                          avoidObstacles();
             }
@@ -271,33 +211,33 @@ void loop()
             {
                 if(MC2.isListening())
                 {
-
-                if(MC2.available())
-                {
-                 // lcd.print("MC2 is available()");
-                String sensorReadings = MC2.readStringUntil('!'); 
-                OLED.clearDisplay(); 
-                OLED.println(sensorReadings); 
-                OLED.display(); 
+                    if(MC2.available())
+                    {
+                    String sensorReadings = MC2.readStringUntil('!'); 
+                    Serial.print(sensorReadings); 
+                    Serial.flush(); 
+                    } 
                 }
-               
-                }
-                else
-                {
-                  OLED.clearDisplay(); 
-                  OLED.println("MC2 is not listening. "); 
-                  OLED.display(); 
-                }
-
             }
+            if(carMode==4)
+            {
+              while(Serial.available()==0) //Experimental. 
+              {
+                followLine(); 
+              }
+              /*
+              Serial.print(analogRead(A5)); 
+              Serial.print("   "); 
+              Serial.print(analogRead(A4)); 
+              Serial.print("   "); 
+              Serial.println(analogRead(A3)); 
+              delay(500); 
+              */
+            }
+
             
    
     
 }
 
-// void clearDisplay()
-// {
-//                   lcd.home(); 
-//                   lcd.print("                "); 
-//                   lcd.home(); 
-// }
+

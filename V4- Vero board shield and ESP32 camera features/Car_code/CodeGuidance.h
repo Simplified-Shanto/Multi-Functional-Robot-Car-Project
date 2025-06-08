@@ -2,11 +2,14 @@
  *Intended board: Arduino Uno.
  *Controller: MI2 AI2 built custom Mobile App. 
  * 
- *Modification start:  January 21 2024
+ *Modification start:  1-24-2024
  *Modification end:  . 
  *
  * What's new in this version? 
- * 1. The servo motor of the obstacle avoidance will move slowly to make things stable. 
+ * 1.Debug prints will be removed from the main microcontroller to reduce memory load. 
+      An OLED display will be attached with the second microcontroller for the purpose. 
+   2. Existing LCD display will be removed and line follower functionalities will be introduced. 
+         
  */
 
 
@@ -19,8 +22,8 @@ A0   echoPin of sonar sensor.
 A1   
 A2   txPin of softwareSerial.
 A3   rxPin of softwareSerial.  
-A4   SDA I2C backpack of LCD display
-A5   SCL I2C backpack of LCD display
+A4   
+A5   
 
 
 
@@ -77,8 +80,10 @@ New Digital Pins from shift register.
  "z:-1." Close the gripper. 
  "m:1." Set car to Driving mode. 
  "m:2." Set car to Obstacle avoidance mode. 
- **"m:3." Set car to Sensor reading mode and keep sending 
-          sensor readings to controller app. 
+ "m:3." Set car to Sensor reading mode and keep sending 
+        sensor readings to controller app. 
+ "m:4." Set the car to Line follower mode. 
+ 
  "index:value." Change the Obstacle avoidance settings value at 
                 the mentioned index with the given value. This was
                 introduced to calibrate obstacle avoidance performa

@@ -26,6 +26,27 @@ Rotates different joints of the robotic arm.
 h. ESP32 AI thinker camera module
 Streams video from the car to the controller device. 
 
+
+Functions of different microcontrollers used: 
+1. MC0_Arduino Uno 
+	works as the main microcontroller of the project. Major tasks 
+	includes driving robotic arm, four wheels, obstacle avoidance system, 
+	communicating with the mobile app via BT module attached to it, 	communicating with the other microcontroller, handling the shift 	register which handles some part of the robotic arm. 
+2. MC1_Arduino Nano
+	a. All the sensors are connected to it via it's analog input pins. 
+	   Reads these sensor values and sends to MC0_Arduino Uno when 		   when receives respective commands. 
+3. MC2_ESP8266
+	a. Handles the OLED display which is attached for printing debug 	info and important messages like the IP address of the camera etc. 
+
+4. MC3_ESP32CAM 
+	a. Handles camera functionality
+	b. Handles timelapsing. 
+	c. Sends the IP address connected to MC2_ESP8266
+
+
+Changes made to the mobile app in this version: 
+
+
 Vero board shield header details: 
 Header 3
 _________
