@@ -2,18 +2,20 @@
  *Intended board: Arduino Uno.
  *Controller: MI2 AI2 built custom Mobile App. 
  * 
- *Modification start: 15/10/2023
- *Modification end: 18/10/2023
+ *Modification start: 11/14/2023
+ *Modification end: 
  *
  * What's new in this version? 
+ * 1. Before moving forward, there will be checking for whether 
+ * is a safe distance or not in front of it. 
+ * This means that, the forward movement will not work when 
+ * the ultrasonic sensor is not/poorly connected/faulty. 
  * 
- * 1.Second joint from base will contain 180degree servo whose positions
- *  will be tuned by a arraylist
- * 2. The code has been divided into separate header files 
- *    for managing and developing easily. 
+ * This feature is not working, we'll debug tomorrow. 
+ * 
  *
  * 
-  
+ *
  * 
  */
 
@@ -22,6 +24,11 @@
 #include "WheelMotors.h"
 #include "RoboticArm.h"
 #include "ObstacleAvoidance.h"
+
+#define SonarSensorAttached 1 
+//Whether ultrasonic sensor is currently attached
+                              //with the vehicle, otherwise we'll disable all 
+                              //functionalaties related to it. 
 
 
 void setup() {
@@ -50,7 +57,8 @@ void setup() {
   armServo5.attach(7); 
   
 
-  initializeRoboticArm(); 
+  initializeRoboticArm(); //Moves different servo motors to their desired
+                           //initial angle. 
   delay(100); 
 
   Serial.begin(9600); 
@@ -113,9 +121,20 @@ void loop()
                         switch(Action) //Which action we are going to take. 
                         {
                               case 'f': 
-                              if(carMode==1){        
+                              if(carMode==1){ 
+                                if(SonarSensorAttached == 1) 
+                                {
+                                  if(calculateDistance()>3)
+                                  {
+                                     goForward(actionValue); 
+                                     timeThreshold = 100; 
+                                  }
+                                }
+                                else  //if the sonar sensor is not attached we'll not go for checking distance. 
+                                {      
                              goForward(actionValue); 
                               timeThreshold = 100; 
+                                }
                               }
                               break; 
                               
