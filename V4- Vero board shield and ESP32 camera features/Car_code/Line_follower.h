@@ -1,3 +1,4 @@
+//#include"ObstacleAvoidance.h"
 
 #define leftIRpin A5
 #define middleIRpin A4
@@ -21,27 +22,39 @@ Right          65   70 -  75                    85                         90  -
 //Black value range 
 //White value range
 
-#define forwardPwm 180
-#define leftRightPwm 230
+#define forwardPwm 200
+#define leftRightPwm 250
 
+
+//We'll try while loop instead of if else. 
+
+/*
+if all the sensor faces white then the car will not move and 
+indicate it with the sensor servo moving a bit. 
+
+*/
 void followLine()
 {
-
-      if(leftIRvalue > leftThreshold && rightIRvalue > rightThreshold)
+  
+   if(leftIRvalue < leftThreshold)
       {
-            goForward(forwardPwm); 
-          // delay(wait); 
-      }
-      else if(leftIRvalue < leftThreshold)
-      {
+          while(middleIRvalue > middleThreshold) //Once the left sensor is on the black line, move until the car is aligned perfectly. 
+          {
             goLeft(leftRightPwm); 
+          }
       // delay(wait); 
       }
-
       else if(rightIRvalue < rightThreshold)
       {
+          while(middleIRvalue > middleThreshold) //Once the right sensor is on the black line, move until the car is aligned perfectly. 
+          {
           goRight(leftRightPwm);
+          }
       // delay(wait); 
+      }
+      else
+      {
+          goForward(forwardPwm); 
       }
 
 }
