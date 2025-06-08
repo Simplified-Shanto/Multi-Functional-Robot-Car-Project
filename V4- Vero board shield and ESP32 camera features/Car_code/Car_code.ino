@@ -88,8 +88,8 @@ void setup() {
                   unsigned short moveGap = 700; //The gap between writing initial angles of each successive servos
     armServo1.write(servoPositions[0]); 
     delay(moveGap); 
-    armServo2Left.write(servoPositions[1]); 
-    armServo2Right.write(servoPositions[1]); 
+    //armServo2Left.write(servoPositions[1]); 
+    //armServo2Right.write(servoPositions[1]); 
     delay(moveGap); 
     armServo3.write(servoPositions[2]);
     delay(moveGap);  
@@ -166,7 +166,6 @@ unsigned short oaSpeed = 90; //PWM value while driving in obstacle avoidance (OA
 void loop() {
  
    if (Serial.available()) {
-    Serial.println("Received");
     command = Serial.readStringUntil('.');  
     Action = command[0]; //The type of action the remote wants us to take. 
     speedString = command.substring(2, command.length()); 
@@ -247,10 +246,22 @@ void loop() {
 
         case 'w': //Third CR servo counting from the base of the arm. 
         {
+          /*
          if(actionValue==1){     armServo3.write(CRSspeed+90);       }  //moving in the forward direction. 
          else { armServo3.write(90-CRSspeed); }  //moving in the backward direction
          delay(CRSruntime);   //for a short time. 
          armServo3.write(90); //then stopping the motor from rotating. 
+          */
+          servoPositions[3]+=actionValue; 
+         if(servoPositions[3]>=2 && servoPositions[3]<=178)
+         {
+          armServo3.write(servoPositions[3]); 
+          delay(60); 
+         }
+         else
+         {
+          servoPositions[3]-=actionValue; 
+         }
         }
         break; 
 
@@ -265,10 +276,12 @@ void loop() {
 
         case 'y': //Fifth servo motor. 
         {
+      
            servoPositions[5]+=2*actionValue; //Incrementing/Decrementing. 
           servoPositions[5] = max(servoPositions[5], 2); //Taking care of lower bound of angle
           servoPositions[5] = min(servoPositions[5], 178); //Taking care of upper bound of angle
-          armServo5.write(servoPositions[5]); 
+          armServo5.write(servoPositions[5]);
+        
         }
         break;
 
@@ -353,6 +366,8 @@ void loop() {
         goForward(oaSettingsValue[0]); 
       }
     }
+    
+    
 }
 
 //digtalWrite() function for the new extra pins
@@ -370,6 +385,8 @@ void DigitalWrite(int extraPinNumber, int state)
 
   digitalWrite(latchPin, HIGH); 
 }
+
+
 
 int calculateDistance(){ 
   
