@@ -18,13 +18,15 @@ byte anglePairIndex = 0; //Index of which angle is being written in the motor ac
 #define wristMotorIn4 21
 
 
+//Unused servo motors are commented out. 
+
 //PWM pins of arduino Uno -   3, 5, 6, 9, 10, 11
 Servo armServo1; //Continuous rotation Servomotor at the base of the robotic arm
 Servo armServo2Left; //Continuous rotation Left servo of the second joint from the bottom. 
 Servo armServo2Right; //Continuous rotation Right servo for the second joint from the bottom. 
-Servo armServo3; //The fourth servo motor from the base of the robotic arm
+//Servo armServo3; //The fourth servo motor from the base of the robotic arm
 Servo armServo4; //The fifth servo motor from the base of the robotic arm
-Servo armServo5; //The sixth servo motor from the base of the robotic arm
+//Servo armServo5; //The sixth servo motor from the base of the robotic arm
 
  byte servoPositions[6] = {90, leftAngles[anglePairIndex], rightAngles[anglePairIndex], 90, 90, 90}; //Initial positions of the servo motors used in the arm
                                                  //armServo1, armServo3 and armServo4 are continuous rotation, so we set 90 degree (stop). 
@@ -45,11 +47,11 @@ void initializeRoboticArm()
             armServo2Left.write(servoPositions[1]); 
             armServo2Right.write(servoPositions[2]); 
             delay(moveGap); 
-            armServo3.write(servoPositions[2]);
+          //  armServo3.write(servoPositions[2]);
             delay(moveGap);  
             armServo4.write(servoPositions[3]); 
             delay(moveGap); 
-            armServo5.write(servoPositions[4]); 
+          //  armServo5.write(servoPositions[4]); 
             delay(moveGap); 
     }
 
