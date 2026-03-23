@@ -9,7 +9,11 @@ This repository contains the development of a **multi-functional robotic car** t
 - **Smart Navigation**: Uses sensors to detect and avoid obstacles efficiently.
 - **Expandable Design**: Can be modified for additional functionalities.
 
+## Demo Video
 
+[![Watch the demo](https://img.youtube.com/vi/YAkbt27cH2c/maxresdefault.jpg)](https://www.youtube.com/watch?v=YAkbt27cH2c)
+
+▶️ Click the image to watch the video on YouTube
 
 ## Version Summaries
 
